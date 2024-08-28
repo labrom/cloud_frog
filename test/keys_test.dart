@@ -2,7 +2,7 @@ import 'package:cloud_frog/src/keys.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final expectedKey = '''
+  const expectedKey = '''
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAonV5tzUbqyPfkM6MwUqC
 trqun9x20hEUbIUlmAYYuPuMhsaNHJqs1AVzRt2TzaNjmPVddEbU7VMDmeFWUt7v

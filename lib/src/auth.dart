@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:cloud_frog/src/dart_frog.dart';
+import 'package:cloud_frog/src/gcloud_keys.dart';
 import 'package:cloud_frog/src/oidc_token.dart';
+import 'package:cloud_frog/src/user.dart';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
 import 'package:dart_frog_request_logger/dart_frog_request_logger.dart';
-
-import 'gcloud_keys.dart';
-import 'user.dart';
 
 Middleware verifyServiceAccount(
   List<String> allowedEmails, {

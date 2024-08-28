@@ -15,7 +15,6 @@ Future<Jwks> gCloudPublicKeys() async => Jwks.fromJson(
     );
 
 class Jwks {
-  final _keys = <String, Jwk>{};
 
   Jwks.fromJson(String json) {
     final keysJson = jsonDecode(json)['keys'] as List<dynamic>;
@@ -24,6 +23,7 @@ class Jwks {
       _keys[key.kid] = key;
     }
   }
+  final _keys = <String, Jwk>{};
 
   List<String> get kids => _keys.keys.toList();
   List<Jwk> get keys => _keys.values.toList();
@@ -32,7 +32,6 @@ class Jwks {
 
 @JsonSerializable()
 class Jwk {
-  factory Jwk.fromJson(Map<String, dynamic> json) => _$JwkFromJson(json);
   Jwk({
     required this.kid,
     required this.kty,
@@ -41,6 +40,7 @@ class Jwk {
     required this.alg,
     required this.use,
   });
+  factory Jwk.fromJson(Map<String, dynamic> json) => _$JwkFromJson(json);
 
   final String kid;
   final String kty;
