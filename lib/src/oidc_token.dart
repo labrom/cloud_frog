@@ -12,22 +12,16 @@ class OIDCToken {
   final String _token;
   final JWT _decodedToken;
 
-  bool hasAudience(String audience) {
-    final Audience? audiences = _decodedToken.audience;
-    if (audiences == null) {
-      return false;
-    }
-    return audiences.contains(audience);
-  }
-
-  String? get issuer => _decodedToken.issuer;
-
   User get user => User(
         email: _decodedToken.payload['email'] as String,
         emailVerified: _decodedToken.payload['email_verified'] as bool,
       );
 
-  void verify(Jwks jwks) {
+  void verify(
+    Jwks jwks, {
+    String? audience,
+    String? issuer,
+  }) {
     final kid = _decodedToken.header?['kid'] as String?;
     if (kid != null) {
       final jwk = jwks.key(kid);
@@ -35,7 +29,11 @@ class OIDCToken {
         throw TokenVerificationException('Invalid token key id');
       }
       try {
-        _verifyWithKey(jwk);
+        _verifyWithKey(
+          jwk,
+          audience: audience,
+          issuer: issuer,
+        );
       } catch (e) {
         throw TokenVerificationException(e.toString());
       }
@@ -43,7 +41,11 @@ class OIDCToken {
     } else {
       for (final jwk in jwks.keys) {
         try {
-          _verifyWithKey(jwk);
+          _verifyWithKey(
+            jwk,
+            audience: audience,
+            issuer: issuer,
+          );
           return;
         } on Exception {
           // Do nothing, will try next one, and throw if we cannot return
@@ -55,7 +57,11 @@ class OIDCToken {
     }
   }
 
-  void _verifyWithKey(Jwk jwk) {
+  void _verifyWithKey(
+    Jwk jwk, {
+    String? audience,
+    String? issuer,
+  }) {
     JWT.verify(
       _token,
       RSAPublicKey(
@@ -64,6 +70,8 @@ class OIDCToken {
           e: jwk.e,
         ),
       ),
+      audience: audience != null ? Audience.one(audience) : null,
+      issuer: issuer,
     );
   }
 }

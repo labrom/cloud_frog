@@ -43,20 +43,13 @@ Middleware validateToken({
         final logger = await context.readOptional<Future<RequestLogger>>();
         final oidcToken = OIDCToken(token: token);
 
-        if (verifyAudience &&
-            !oidcToken.hasAudience(context.request.uri.toString())) {
-          logger?.alert("Invalid token audience: should be the request's URI");
-          return Future.value();
-        }
-        if (verifyIssuer && oidcToken.issuer != 'https://accounts.google.com') {
-          logger?.alert(
-              'Invalid token issuer: should be https://accounts.google.com');
-          return Future.value();
-        }
-
         final jwks = await context.read<Future<Jwks>>();
         try {
-          oidcToken.verify(jwks);
+          oidcToken.verify(
+            jwks,
+            audience: verifyAudience ? context.request.uri.toString() : null,
+            issuer: verifyIssuer ? 'https://accounts.google.com' : null,
+          );
           return Future.value(oidcToken.user);
         } on TokenVerificationException catch (e) {
           logger?.alert('Invalid token: ${e.message}');
