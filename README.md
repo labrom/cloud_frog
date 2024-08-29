@@ -21,6 +21,8 @@ If you choose to stick with Google Cloud IAM, configuring access control boils d
 
 If you decide to use Cloud Frog access control instead, read below! Note that in both cases, requests are authenticated using the same underlying mechanism: OIDC (OpenID Connect) tokens.
 
+Cloud Frog builds on top of [Dart Frog's authentication support](https://dartfrog.vgv.dev/docs/advanced/authentication#bearer-authentication) by parsing and verifying OIDC tokens included in the *Authorization* header using the *Bearer* scheme. If the token is valid and the account is authorized, the rest of the route handler is executed. If that isn't the case, HTTP code 401 (*unauthorized* - missing or invalid token) or 403 (*forbidden* - valid token but wrong user) is returned.
+
 ## Getting started
 
 ### Prerequisites
@@ -93,6 +95,3 @@ The first argument is a list of service accounts that are allowed to access the 
 Also note that these accounts don't necessarily have to be registered in the same project where your service is deployed. From the service perspective, they're just an email address associated with a token issuer (more on the issuer below).
 
 The named argument `verifyAudience` indicates whether the token's `aud` field should be verified. Cloud Frog currently only supports verifying that the audience corresponds to the request URI. This argument is optional and defaults to `true`.
-
-The named argument `issuer` represents the OIDC token issuer. It is optional, and no verification is performed if it isn't specified. Cloud Frog provides the `issuerGoogle` constant that represents Google accounts (*https://accounts.google.com*).
-
