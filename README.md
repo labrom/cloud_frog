@@ -95,3 +95,5 @@ The first argument is a list of service accounts that are allowed to access the 
 Also note that these accounts don't necessarily have to be registered in the same project where your service is deployed. From the service perspective, they're just an email address associated with a token issuer (more on the issuer below).
 
 The named argument `verifyAudience` indicates whether the token's `aud` field should be verified. Cloud Frog currently only supports verifying that the audience corresponds to the request URI. This argument is optional and defaults to `true`.
+
+The named argument `issuer` represents the OIDC token issuer. It is optional, and no verification is performed if it isn't specified. Cloud Frog provides the `issuerGoogle` constant that represents Google accounts (*https://accounts.google.com*).
