@@ -8,7 +8,7 @@ import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
 import 'package:dart_frog_request_logger/dart_frog_request_logger.dart';
 
-const googleIssuer = 'https://accounts.google.com';
+const issuerGoogle = 'https://accounts.google.com';
 
 Middleware verifyServiceAccount(
   List<String> allowedEmails, {
