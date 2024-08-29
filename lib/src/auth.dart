@@ -8,17 +8,19 @@ import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
 import 'package:dart_frog_request_logger/dart_frog_request_logger.dart';
 
+const googleIssuer = 'https://accounts.google.com';
+
 Middleware verifyServiceAccount(
   List<String> allowedEmails, {
   bool verifyAudience = true,
-  bool verifyIssuer = true,
+  String? issuer,
 }) =>
     (handler) => handler
         .use(verifyContextUser(allowedEmails))
         .use(
           validateToken(
             verifyAudience: verifyAudience,
-            verifyIssuer: verifyIssuer,
+            issuer: issuer,
           ),
         )
         .use(gCloudPublicKeysProvider);
@@ -35,7 +37,7 @@ Middleware verifyContextUser(List<String> allowedEmails) => (handler) {
 
 Middleware validateToken({
   required bool verifyAudience,
-  required bool verifyIssuer,
+  String? issuer,
 }) =>
     bearerAuthentication<User>(
       authenticator: (context, token) async {
@@ -47,7 +49,7 @@ Middleware validateToken({
           oidcToken.verify(
             jwks,
             audience: verifyAudience ? context.request.uri.toString() : null,
-            issuer: verifyIssuer ? 'https://accounts.google.com' : null,
+            issuer: issuer,
           );
           return Future.value(oidcToken.user);
         } on TokenVerificationException catch (e) {
