@@ -11,7 +11,7 @@ A further goal of Cloud Frog is to also support the other environments [supporte
 The main feature currently provided by Cloud Frog is a [Dart Frog middleware](https://dartfrog.vgv.dev/docs/basics/middleware) that can be used to restrict service invocation to only certain Cloud IAM service accounts, at the route level.
 
 Google Cloud Run does offer access control over HTTPS by using IAM (see https://cloud.google.com/run/docs/authenticating/service-to-service), however in some scenarios it might be more convenient to implement this verification within your own service code.
-Some of those scenarios include when your service has a combination of public and private routes, or when different service accounts should have access to different routes.
+Some of those scenarios include when your service has a combination of public and private routes, or when different service accounts should have access to different routes.retruned
 
 Note that whenever access control is configured in Google Cloud Run and IAM, incoming requests are verified before your service code is invoked. Although it is technically possible to combine Google Cloud IAM and Cloud Frog access control, there isn't much benefit in doing so and it will probably increase complexity.
 
@@ -57,7 +57,7 @@ import 'package:dart_frog/dart_frog.dart';
 
 Handler middleware(Handler handler) => handler
     .use(verifyServiceAccount(
-        ['my-service-account@my-project.iam.gserviceaccount.com'],
+        ['my-service-account@my-project-123456.iam.gserviceaccount.com'],
         issuer: issuerGoogle,
     ));
 ```
@@ -83,8 +83,8 @@ import 'package:dart_frog/dart_frog.dart';
 Handler middleware(Handler handler) => handler
     .use(verifyServiceAccount(
         [
-            'my-service-account@my-project1.iam.gserviceaccount.com',
-            'my-service-account@my-other-project.iam.gserviceaccount.com',
+            'my-service-account@my-project-123456.iam.gserviceaccount.com',
+            'my-service-account@my-other-project-987654.iam.gserviceaccount.com',
         ],
         verifyAudience: true,
         issuer: issuerGoogle,
@@ -97,3 +97,48 @@ Also note that these accounts don't necessarily have to be registered in the sam
 The named argument `verifyAudience` indicates whether the token's `aud` field should be verified. Cloud Frog currently only supports verifying that the audience corresponds to the request URI. This argument is optional and defaults to `true`.
 
 The named argument `issuer` represents the OIDC token issuer. It is optional, and no verification is performed if it isn't specified. Cloud Frog provides the `issuerGoogle` constant that represents Google accounts (*https://accounts.google.com*).
+
+### Logging
+
+The Cloud Frog middleware can optionally be configured with a logger. If the middleware can find an instance of [`RequestLogger`](https://pub.dev/documentation/dart_frog_request_logger/latest/dart_frog_request_logger/RequestLogger-class.html) from the [dart_frog_request_logger package](https://pub.dev/packages/dart_frog_request_logger) in the route's `Context`, it will use it and log messages that could prove useful when trying to authenticate a service account.
+
+In order to make the logger available to the Cloud Frog middleware, add it as a dependency in the route's middleware:
+```dart
+import 'dart:io';
+
+import 'package:cloud_frog/cloud_frog.dart';
+import 'package:dart_frog/dart_frog.dart';
+import 'package:dart_frog_request_logger/dart_frog_request_logger.dart';
+import 'package:dart_frog_request_logger/log_formatters.dart';
+
+Handler middleware(Handler handler) => handler
+    .use(
+        verifyServiceAccount(
+            [
+                'my-service-account@my-project-123456.iam.gserviceaccount.com',
+                'my-service-account@my-other-project-987654.iam.gserviceaccount.com',
+            ],
+            verifyAudience: true,
+            issuer: issuerGoogle,
+        ),
+    )
+    .use(
+      provider<Future<RequestLogger>>(
+        (context) async => RequestLogger(
+          headers: context.request.headers,
+          logFormatter: formatCloudLoggingLog(projectId: await projectId),
+        ),
+      ),
+    );
+```
+Note that `Future<RequestLogger>`, not `RequestLogger`, is provided in the context. This is needed because the `RequestLogger` constructor uses the `projectId` getter (courtesy of Cloud Frog) that is asynchronous. If the Google Cloud project ID was hard-coded, the `RequestLogger` instance could be returned directly:
+```dart
+    .use(
+        provider<RequestLogger>(
+            (context) => RequestLogger(
+                headers: context.request.headers,
+                logFormatter: formatCloudLoggingLog(projectId: 'my-project-123456'),
+            ),
+        ),
+    )
+```
