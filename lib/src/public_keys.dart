@@ -14,7 +14,40 @@ Future<Jwks> gCloudPublicKeys() async => Jwks.fromJson(
           .body,
     );
 
-class Jwks {
+Future<Pems> firebasePublicKeys() async => Pems.fromJson(
+      (await get(
+        Uri.parse(
+          'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com',
+        ),
+      ))
+          .body,
+    );
+
+abstract class KeyStore<T> {
+  final _keys = <String, T>{};
+
+  List<String> get kids => _keys.keys.toList();
+  List<T> get keys => _keys.values.toList();
+  T? key(String kid) => _keys[kid];
+}
+
+class Pems extends KeyStore<Pem> {
+  Pems.fromJson(String json) {
+    final keysJson = jsonDecode(json) as Map<String, dynamic>;
+    _keys.addEntries(
+      keysJson.entries
+          .map((entry) => MapEntry(entry.key, Pem(x509: entry.value as String)))
+          .toList(),
+    );
+  }
+}
+
+class Pem {
+  Pem({required this.x509});
+  final String x509;
+}
+
+class Jwks extends KeyStore<Jwk> {
   Jwks.fromJson(String json) {
     final keysJson = jsonDecode(json)['keys'] as List<dynamic>;
     for (final keyJson in keysJson) {
@@ -22,11 +55,6 @@ class Jwks {
       _keys[key.kid] = key;
     }
   }
-  final _keys = <String, Jwk>{};
-
-  List<String> get kids => _keys.keys.toList();
-  List<Jwk> get keys => _keys.values.toList();
-  Jwk? key(String kid) => _keys[kid];
 }
 
 @JsonSerializable()

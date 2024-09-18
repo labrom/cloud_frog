@@ -12,24 +12,28 @@ class OIDCToken {
   final JWT _decodedToken;
 
   User get user => User(
+        subject: _decodedToken.payload['sub'] as String,
         email: _decodedToken.payload['email'] as String,
         emailVerified: _decodedToken.payload['email_verified'] as bool,
       );
 
-  void verify(
-    Jwks jwks, {
+  /// Verifies the token.
+  ///
+  /// The [T] type parameter is the public key format: [Jwk] or [Pem].
+  void verify<T>(
+    KeyStore<T> keyStore, {
     String? audience,
     String? issuer,
   }) {
     final kid = _decodedToken.header?['kid'] as String?;
     if (kid != null) {
-      final jwk = jwks.key(kid);
-      if (jwk == null) {
+      final key = keyStore.key(kid);
+      if (key == null) {
         throw TokenVerificationException('Invalid token key id');
       }
       try {
-        _verifyWithKey(
-          jwk,
+        _verifyWithRsaPK(
+          _rsaPK(key),
           audience: audience,
           issuer: issuer,
         );
@@ -38,10 +42,10 @@ class OIDCToken {
       }
       return;
     } else {
-      for (final jwk in jwks.keys) {
+      for (final key in keyStore.keys) {
         try {
-          _verifyWithKey(
-            jwk,
+          _verifyWithRsaPK(
+            _rsaPK(key),
             audience: audience,
             issuer: issuer,
           );
@@ -51,24 +55,34 @@ class OIDCToken {
         }
       }
       throw TokenVerificationException(
-        "Token could'nt be verified with any key",
+        "Token couldn't be verified with any key",
       );
     }
   }
 
-  void _verifyWithKey(
-    Jwk jwk, {
+  RSAPublicKey _rsaPK(dynamic key) {
+    if (key is Jwk) {
+      return RSAPublicKey(
+        rsaPublicKeyFromJwkUsingASN1(
+          n: key.n,
+          e: key.e,
+        ),
+      );
+    }
+    if (key is Pem) {
+      return RSAPublicKey.cert(key.x509);
+    }
+    throw TokenVerificationException('Invalid public key format');
+  }
+
+  void _verifyWithRsaPK(
+    RSAPublicKey key, {
     String? audience,
     String? issuer,
   }) {
     JWT.verify(
       _token,
-      RSAPublicKey(
-        rsaPublicKeyFromJwkUsingASN1(
-          n: jwk.n,
-          e: jwk.e,
-        ),
-      ),
+      key,
       audience: audience != null ? Audience.one(audience) : null,
       issuer: issuer,
     );

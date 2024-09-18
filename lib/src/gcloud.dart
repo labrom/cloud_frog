@@ -36,3 +36,12 @@ Future<String> get projectId async => (await get(
       headers: {'Metadata-Flavor': 'Google'},
     ))
         .body;
+
+/// A Google Cloud project.
+class Project {
+  /// Constructor with projectId.
+  const Project(this.id);
+
+  /// The project's id (projectId).
+  final String id;
+}

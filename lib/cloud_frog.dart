@@ -3,3 +3,4 @@ library;
 
 export 'src/auth.dart';
 export 'src/gcloud.dart';
+export 'src/user.dart';
