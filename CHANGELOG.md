@@ -1,3 +1,8 @@
+## 1.0.2
+
+- Fixed README.
+- Some refactoring, no public API change.
+
 ## 1.0.1
 
 - Added API documentation.
