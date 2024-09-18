@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'gcloud_keys.g.dart';
+part 'public_keys.g.dart';
 
 Future<Jwks> gCloudPublicKeys() async => Jwks.fromJson(
       (await get(
@@ -15,7 +15,6 @@ Future<Jwks> gCloudPublicKeys() async => Jwks.fromJson(
     );
 
 class Jwks {
-
   Jwks.fromJson(String json) {
     final keysJson = jsonDecode(json)['keys'] as List<dynamic>;
     for (final keyJson in keysJson) {

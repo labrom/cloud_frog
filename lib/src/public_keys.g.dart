@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gcloud_keys.dart';
+part of 'public_keys.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
