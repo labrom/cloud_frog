@@ -85,6 +85,7 @@ Middleware verifyServiceAccount(
 ///         authenticateFirebaseUser(),
 ///       );
 /// }
+/// ```
 Middleware get authenticateFirebaseUser {
   return (Handler handler) {
     return handler
