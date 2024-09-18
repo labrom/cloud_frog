@@ -11,7 +11,7 @@ A further goal of Cloud Frog is to also support the other environments [supporte
 The main feature currently provided by Cloud Frog is a [Dart Frog middleware](https://dartfrog.vgv.dev/docs/basics/middleware) that can be used to restrict service invocation to only certain Cloud IAM service accounts, at the route level.
 
 Google Cloud Run does offer access control over HTTPS by using IAM (see https://cloud.google.com/run/docs/authenticating/service-to-service), however in some scenarios it might be more convenient to implement this verification within your own service code.
-Some of those scenarios include when your service has a combination of public and private routes, or when different service accounts should have access to different routes.retruned
+Some of those scenarios include when your service has a combination of public and private routes, or when different service accounts should have access to different routes.
 
 Note that whenever access control is configured in Google Cloud Run and IAM, incoming requests are verified before your service code is invoked. Although it is technically possible to combine Google Cloud IAM and Cloud Frog access control, there isn't much benefit in doing so and it will probably increase complexity.
 
@@ -19,9 +19,9 @@ If you choose to stick with Google Cloud IAM, configuring access control boils d
 - Set the service's *SECURITY/Authentication* to *Require authentication*
 - Add the service account as a principal  in the service's *PERMISSIONS* panel (*ADD PRINCIPAL* button) and grant the *Cloud Run Invoker* role.
 
-If you decide to use Cloud Frog access control instead, read below! Note that in both cases, requests are authenticated using the same underlying mechanism: OIDC (OpenID Connect) tokens.
+If you decide to use Cloud Frog access control instead, keep reading! Note that in both cases, requests are authenticated using the same underlying mechanism: OIDC (OpenID Connect) tokens.
 
-Cloud Frog builds on top of [Dart Frog's authentication support](https://dartfrog.vgv.dev/docs/advanced/authentication#bearer-authentication) by parsing and verifying OIDC tokens included in the *Authorization* header using the *Bearer* scheme. If the token is valid and the account is authorized, the rest of the route handler is executed. If that isn't the case, HTTP code 401 (*unauthorized* - missing or invalid token) or 403 (*forbidden* - valid token but wrong user) is returned.
+Cloud Frog builds on top of [Dart Frog's authentication support](https://dartfrog.vgv.dev/docs/advanced/authentication#bearer-authentication) by parsing and verifying OIDC tokens included in the *Authorization* header using the *Bearer* scheme. If the token is valid and the account is authorized, the remainder of the route handler is executed. If that isn't the case, HTTP code 401 (*unauthorized* - missing or invalid token) or 403 (*forbidden* - valid token but wrong user) is returned.
 
 ## Getting started
 
