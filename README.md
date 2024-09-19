@@ -8,7 +8,13 @@ A further goal of Cloud Frog is to also support the other environments [supporte
 
 ## Features
 
-The main feature currently provided by Cloud Frog is a [Dart Frog middleware](https://dartfrog.vgv.dev/docs/basics/middleware) that can be used to restrict service invocation to only certain Cloud IAM service accounts, at the route level.
+Cloud Frog currently provides with route-level access control in two distinct scenarios:
+1. service-to-service authentication
+1. end-user authentication using Firebase
+
+### Service-to-service authentication
+
+Service-to-service authentication is provided by Cloud Frog in the form of a [Dart Frog middleware](https://dartfrog.vgv.dev/docs/basics/middleware) that can be used to restrict service invocation to only certain Cloud IAM service accounts, at the route level.
 
 Google Cloud Run does offer access control over HTTPS by using IAM (see https://cloud.google.com/run/docs/authenticating/service-to-service), however in some scenarios it might be more convenient to implement this verification within your own service code.
 Some of those scenarios include when your service has a combination of public and private routes, or when different service accounts should have access to different routes.
@@ -22,6 +28,14 @@ If you choose to stick with Google Cloud IAM, configuring access control boils d
 If you decide to use Cloud Frog access control instead, keep reading! Note that in both cases, requests are authenticated using the same underlying mechanism: OIDC (OpenID Connect) tokens.
 
 Cloud Frog builds on top of [Dart Frog's authentication support](https://dartfrog.vgv.dev/docs/advanced/authentication#bearer-authentication) by parsing and verifying OIDC tokens included in the *Authorization* header using the *Bearer* scheme. If the token is valid and the account is authorized, the remainder of the route handler is executed. If that isn't the case, HTTP code 401 (*unauthorized* - missing or invalid token) or 403 (*forbidden* - valid token but wrong user) is returned.
+
+### End-user authentication using Firebase
+
+End-user authentication using Firebase is also provided by Cloud Frog in the form of a [Dart Frog middleware](https://dartfrog.vgv.dev/docs/basics/middleware) that can be used to extract the signed-in Firebase user for a particular route.
+
+Unlike the service-to-service scenario, this middleware doesn't handle restricting access to specific users, but it does ensure that the request is authenticated, and will place the extracted user information into the request context for further use.
+
+Similarly to the service-to-service scenario, this middleware workds with OIDC (OpenID Connect) tokens, the ones that are issued by Firebase Auth in this case.
 
 ## Getting started
 
@@ -39,7 +53,7 @@ Add Cloud Frog as a dependency to your project's `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  cloud_frog: ^1.0.0
+  cloud_frog: ^1.1.0
 ```
 
 Run `pub get` to fetch `cloud_frog`.
@@ -48,7 +62,8 @@ Run `pub get` to fetch `cloud_frog`.
 
 [Dart Frog middlewares](https://dartfrog.vgv.dev/docs/basics/middleware) are functions that are executed as part of the request processing logic for a given route. Middlewares can be added to either the top-level route or individual sub-routes. A middleware added to the top route is executed for all routes.
 
-In order to authenticate requests for a given route, add the Cloud Frog middleware to the `_middleware.dart` file:
+#### Service-to-service authentication
+In order to authenticate service-to-service requests for a given route, add the Cloud Frog middleware to the `_middleware.dart` file:
 ```dart
 import 'dart:io';
 
@@ -64,6 +79,51 @@ Handler middleware(Handler handler) => handler
 
 In the file above, the `verifyServiceAccount` middleware is configured with a single service account (`my-service-account@my-project.iam.gserviceaccount.com`) that is allowd to execute the route(s).
 The `issuer` argument ensures that the token's issuer field will also be validated as Google accounts.
+
+#### End-user authentication using Firebase
+Similarly, in order to authenticate Firebase end-user requests for a given route, add the Cloud Frog middleware to the `_middleware.dart` file:
+```dart
+import 'dart:io';
+
+import 'package:cloud_frog/cloud_frog.dart';
+import 'package:dart_frog/dart_frog.dart';
+
+Handler middleware(Handler handler) => handler
+    .use(authenticateFirebaseUser);
+```
+
+In the file above, the `authenticateFirebaseUser` middleware will ensure that requests for this route are authenticated with a Firebase user . For every request, once this verification is done, the corresponding `User` object is placed in the request context for further use.
+
+The request handler implementation can then access the 'User' object in the request context for authorization and/or personalized logic purposes:
+```dart
+const allowedEmails = [...];
+
+Response onRequest(RequestContext context) {
+  final user = context.read<User>();
+  if (!user.emailVerified || !allowedEmails.contains(user.email)) {
+    return Response(statusCode: HttpStatus.forbidden);
+  }
+
+  // Do something with the user here
+
+  return Response(body: 'Welcome ${user.email}');
+}
+```
+
+User authorization can alternatively be handled in a downstream middleware, using either your own implementation or the built-in [verifyContextUser] middleware:
+```dart
+const allowedEmails = [...];
+
+Handler middleware(Handler handler) {
+  return handler
+      .use(
+        verifyContextUser(allowedEmails),
+      )
+      .use(
+        authenticateFirebaseUser,
+      );
+}
+```
 
 ### Deploy the service
 
