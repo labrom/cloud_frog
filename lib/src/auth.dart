@@ -28,6 +28,9 @@ const issuerFirebasePrefix = 'https://securetoken.google.com/';
 /// The audience must be set to the route's URL.
 /// The optional [issuer] parameter represents the aauthorized OIDC issuer. Use
 /// [issuerGoogle] to verify Google Cloud IAM service accounts.
+///
+/// If the correct service account cannot be verified, this middleware will
+/// return either an HTTP 401 (Unauthorized) or 403 (Forbidden) response code.
 Middleware verifyServiceAccount(
   List<String> allowedEmails, {
   bool verifyAudience = true,
@@ -51,10 +54,15 @@ Middleware verifyServiceAccount(
 /// A Dart Frog middleware that verifies that the current route is invoked by
 /// a signed-in Firebase user.
 ///
+/// The extracted user information is placed in a [User] instance in the
+/// context.
+/// If no user is properly authenticated, this middleware will return an HTTP
+/// 401 (Unauthorized) response code.
 /// This middleware only verifies that requests are authenticated with a
-/// Firebase user, but it doesn't verify the identity of that user.
-/// If you need to restrict the route to a specific set of users, you'll need
-/// to do it either in the request handler or in a downstream middleware.
+/// Firebase user, it doesn't verify the identity of that user.
+/// If you need to restrict the route to a specific set of users or if you need
+/// to provide custom logic for different users, you'll need to do it either in
+/// the request handler or in a downstream middleware.
 ///
 /// For example, authorizing the user in the request handler would look like
 /// this:
@@ -70,9 +78,10 @@ Middleware verifyServiceAccount(
 /// }
 /// ```
 ///
-/// In order to authorize the user in a downstream middleware,
-/// insert [verifyContextUser] directly in the middleware chain, which would
-/// look like this:
+/// In order to authorize the user in a downstream middleware, you can either
+/// implement your own middleware that would get the [User] object from the
+/// [RequestContext], or insert [verifyContextUser] directly in the middleware
+/// chain, which would look like this:
 /// ```dart
 /// const allowedEmails = [...];
 ///
@@ -82,7 +91,7 @@ Middleware verifyServiceAccount(
 ///         verifyContextUser(allowedEmails),
 ///       )
 ///       .use(
-///         authenticateFirebaseUser(),
+///         authenticateFirebaseUser,
 ///       );
 /// }
 /// ```
