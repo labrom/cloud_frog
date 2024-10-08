@@ -1,6 +1,6 @@
 name: cloud_frog
 description: A library to help build secure Google Cloud services using Dart Frog.
-version: 1.0.3
+version: 1.1.0
 repository: https://github.com/labrom/cloud_frog
 
 environment:

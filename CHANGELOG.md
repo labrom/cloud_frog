@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Introduce support for Firebase end-user authentication.
+
 ## 1.0.3
 
 - Fixed README.
