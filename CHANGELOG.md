@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Introduce support for Google APIs clients.
+
 ## 1.1.0
 
 - Introduce support for Firebase end-user authentication.
