@@ -4,11 +4,11 @@ import 'package:googleapis/secretmanager/v1.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 
-/// Retrieves a secret from Google Cloud Secret Manager.
+/// Retrieves a secret from the platform's secret manager.
 ///
 /// If the secret is exposed in an environment variable with the same name,
 /// the secret value is directly returned from there. If not, this function
-/// queries Secret Manager.
+/// queries the platoform's secret manager.
 Future<String> secret(String name) async {
   final envSecret = Platform.environment[name];
   if (envSecret != null) {
