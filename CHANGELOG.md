@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Update dart_jsonwebtoken dependency.
+
 ## 1.2.0
 
 - Introduce support for Google APIs clients.
