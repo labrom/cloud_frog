@@ -1,3 +1,7 @@
+## 1.2.2
+
+- Update asn1lib dependency.
+
 ## 1.2.1
 
 - Update dart_jsonwebtoken dependency.
