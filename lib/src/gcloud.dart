@@ -23,7 +23,7 @@ Future<String> secret(String name) async {
 
   final response =
       await secretManagerApi.projects.secrets.versions.access(secretPath);
-  return response.payload!.data!;
+  return String.fromCharCodes(response.payload!.dataAsBytes);
 }
 
 /// Gets the current project's ID.
