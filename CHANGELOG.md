@@ -1,3 +1,7 @@
+## 1.2.3
+
+- Fix a bug where Google Cloud secret values were returned Base64-encoded.
+
 ## 1.2.2
 
 - Update asn1lib dependency.
