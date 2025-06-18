@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:googleapis/cloudkms/v1.dart';
 import 'package:googleapis/secretmanager/v1.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
@@ -24,6 +26,61 @@ Future<String> secret(String name) async {
   final response =
       await secretManagerApi.projects.secrets.versions.access(secretPath);
   return String.fromCharCodes(response.payload!.dataAsBytes);
+}
+
+/// Encrypts a value using the platform's encryption service.
+/// 
+/// If no [keyRegion] is specified, 'global' will be used.
+Future<String?> encrypt(
+  String value, {
+  required String keyRingName,
+  required String keyName,
+  String? keyRegion,
+}) async {
+  final client = await clientViaMetadataServer();
+  final kmsApi = CloudKMSApi(client);
+  final keyPath =
+      'projects/${await projectId}/locations/${keyRegion ?? 'global'}/keyRings/$keyRingName/cryptoKeys/$keyName';
+  final base64Bytes = base64.encode(utf8.encode(value));
+  final encryptRequest = EncryptRequest.fromJson({
+    'name': keyPath,
+    'plaintext': base64Bytes,
+  });
+  final encryptResponse =
+      await kmsApi.projects.locations.keyRings.cryptoKeys.encrypt(
+    encryptRequest,
+    keyPath,
+  );
+  return encryptResponse.ciphertext;
+}
+
+/// Decrypts a value using the platform's encryption service.
+/// 
+/// If no [keyRegion] is specified, 'global' will be used.
+Future<String?> decrypt(
+  String cipher, {
+  required String keyRingName,
+  required String keyName,
+  String? keyRegion,
+}) async {
+  final client = await clientViaMetadataServer();
+  final kmsApi = CloudKMSApi(client);
+  final keyPath =
+      'projects/${await projectId}/locations/${keyRegion ?? 'global'}/keyRings/$keyRingName/cryptoKeys/$keyName';
+  final decryptRequest = DecryptRequest.fromJson({
+    'name': keyPath,
+    'ciphertext': cipher,
+  });
+  final decryptResponse =
+      await kmsApi.projects.locations.keyRings.cryptoKeys.decrypt(
+    decryptRequest,
+    keyName,
+  );
+  if (decryptResponse.plaintext != null) {
+    return utf8.decode(base64.decode(decryptResponse.plaintext!));
+  } else {
+    return null;
+  }
 }
 
 /// Gets the current project's ID.
