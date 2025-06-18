@@ -29,18 +29,11 @@ Future<String> secret(String name) async {
 }
 
 /// Encrypts a value using the platform's encryption service.
-/// 
-/// If no [keyRegion] is specified, 'global' will be used.
-Future<String?> encrypt(
-  String value, {
-  required String keyRingName,
-  required String keyName,
-  String? keyRegion,
-}) async {
+Future<String?> encrypt(String value, EncryptionKey key) async {
   final client = await clientViaMetadataServer();
   final kmsApi = CloudKMSApi(client);
   final keyPath =
-      'projects/${await projectId}/locations/${keyRegion ?? 'global'}/keyRings/$keyRingName/cryptoKeys/$keyName';
+      'projects/${await projectId}/locations/${key.region}/keyRings/${key.ring}/cryptoKeys/${key.name}';
   final base64Bytes = base64.encode(utf8.encode(value));
   final encryptRequest = EncryptRequest.fromJson({
     'name': keyPath,
@@ -55,18 +48,11 @@ Future<String?> encrypt(
 }
 
 /// Decrypts a value using the platform's encryption service.
-/// 
-/// If no [keyRegion] is specified, 'global' will be used.
-Future<String?> decrypt(
-  String cipher, {
-  required String keyRingName,
-  required String keyName,
-  String? keyRegion,
-}) async {
+Future<String?> decrypt(String cipher, EncryptionKey key) async {
   final client = await clientViaMetadataServer();
   final kmsApi = CloudKMSApi(client);
   final keyPath =
-      'projects/${await projectId}/locations/${keyRegion ?? 'global'}/keyRings/$keyRingName/cryptoKeys/$keyName';
+      'projects/${await projectId}/locations/${key.region}/keyRings/${key.ring}/cryptoKeys/${key.name}';
   final decryptRequest = DecryptRequest.fromJson({
     'name': keyPath,
     'ciphertext': cipher,
@@ -74,7 +60,7 @@ Future<String?> decrypt(
   final decryptResponse =
       await kmsApi.projects.locations.keyRings.cryptoKeys.decrypt(
     decryptRequest,
-    keyName,
+    keyPath,
   );
   if (decryptResponse.plaintext != null) {
     return utf8.decode(base64.decode(decryptResponse.plaintext!));
@@ -101,4 +87,16 @@ class Project {
 
   /// The project's id (projectId).
   final String id;
+}
+
+class EncryptionKey {
+  EncryptionKey({
+    required this.name,
+    required this.ring,
+    this.region = 'global',
+  });
+
+  final String name;
+  final String ring;
+  final String region;
 }
