@@ -4,7 +4,7 @@ version: 1.2.4
 repository: https://github.com/labrom/cloud_frog
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.8.0
 
 dependencies:
   asn1lib: ^1.6.5
@@ -16,7 +16,7 @@ dependencies:
   googleapis_auth: ^2.0.0
   http: ^1.6.0
   json_annotation: ^4.9.0
-  json_serializable: ^6.11.3
+  json_serializable: ^6.11.2
 
 dev_dependencies:
   build_runner: ^2.10.4
