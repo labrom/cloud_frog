@@ -1,3 +1,7 @@
+## 1.2.5
+
+- Downgrade json_serializable to avoid analyzer 9.0.0 constraint.
+
 ## 1.2.4
 
 - Update most dependencies.
