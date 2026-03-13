@@ -2,6 +2,7 @@
 library;
 
 export 'src/auth.dart';
+export 'src/datetime.dart';
 export 'src/gcloud.dart';
 export 'src/googleapis.dart';
 export 'src/user.dart';

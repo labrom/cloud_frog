@@ -202,3 +202,25 @@ Note that `Future<RequestLogger>`, not `RequestLogger`, is provided in the conte
         ),
     )
 ```
+
+### DateTime
+
+The `DateTimeService` class is provided as a convenience for the cases where a service needs to ensure local time or get time in a specific timezone.
+In Dart Frog services, Cloud Run will typically provide `DateTime` instances in UTC, not in the container's local time.
+
+Use `DateTimeService` to either ensure local time (as specified in the 'TZ' environment variable) or time in a specific timezone:
+```dart
+import 'package:cloud_frog/cloud_frog.dart';
+
+void main() {
+    // Get the local time.
+    // Note that localTime is a DateTime instance, it doesn't hold any timezone information, just the fact that it's not in UTC.
+    // If no 'TZ' environment variable is set with a timezone name, this is equivalent to DateTime.now().
+    final localTime = DateTimeService().localNow();
+
+    // Get time in New York's current timezone.
+    // Note that timezoneTime is a TZDateTime from the timezone package,
+    // which is a sub-class of DateTime, and holds the timezone information.
+    final timezoneTime = DateTimeService().now('America/New-York');
+}
+```
