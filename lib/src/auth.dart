@@ -1,12 +1,13 @@
 import 'dart:io';
 
-import 'package:cloud_frog/cloud_frog.dart';
 import 'package:cloud_frog/src/dart_frog.dart';
 import 'package:cloud_frog/src/oidc_token.dart';
 import 'package:cloud_frog/src/public_keys.dart';
+import 'package:cloud_frog/src/user.dart';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
 import 'package:dart_frog_request_logger/dart_frog_request_logger.dart';
+import 'package:gcputil/gcputil.dart';
 
 /// The Google Accounts OIDC issuer.
 ///
@@ -38,15 +39,8 @@ Middleware verifyServiceAccount(
 }) {
   return (handler) {
     return handler
-        .use(
-          verifyContextUser(allowedEmails),
-        )
-        .use(
-          validateToken(
-            verifyAudience: verifyAudience,
-            issuer: issuer,
-          ),
-        )
+        .use(verifyContextUser(allowedEmails))
+        .use(validateToken(verifyAudience: verifyAudience, issuer: issuer))
         .use(gCloudPublicKeysProvider);
   };
 }
@@ -98,9 +92,7 @@ Middleware verifyServiceAccount(
 Middleware get authenticateFirebaseUser {
   return (Handler handler) {
     return handler
-        .use(
-          validateFirebaseToken(),
-        )
+        .use(validateFirebaseToken())
         .use(projectProvider)
         .use(firebasePublicKeysProvider);
   };
@@ -135,10 +127,7 @@ Middleware verifyContextUser(List<String> allowedEmails) {
 /// It expects to find public keys in the request context and uses them to
 /// verify the token signature.
 /// Don't use this middleware directly but instead use [verifyServiceAccount].
-Middleware validateToken({
-  required bool verifyAudience,
-  String? issuer,
-}) {
+Middleware validateToken({required bool verifyAudience, String? issuer}) {
   return (handler) {
     return (context) async {
       return handler.use(
@@ -174,10 +163,7 @@ Middleware validateFirebaseToken() {
   };
 }
 
-Middleware _validateToken<T>({
-  String? audience,
-  String? issuer,
-}) {
+Middleware _validateToken<T>({String? audience, String? issuer}) {
   return bearerAuthentication<User>(
     authenticator: (context, token) async {
       final logger = await context.readOptional<Future<RequestLogger>>();
@@ -185,11 +171,7 @@ Middleware _validateToken<T>({
 
       final keyStore = await context.read<Future<KeyStore<T>>>();
       try {
-        oidcToken.verify(
-          keyStore,
-          audience: audience,
-          issuer: issuer,
-        );
+        oidcToken.verify(keyStore, audience: audience, issuer: issuer);
         return Future.value(oidcToken.user);
       } on TokenVerificationException catch (e) {
         logger?.alert('Invalid token: ${e.message}');

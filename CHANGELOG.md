@@ -1,3 +1,8 @@
+## 1.3.2
+
+- Move Google Cloud utility implementations to the `gcputil` package and
+  re-export them for compatibility.
+
 ## 1.3.1
 
 - Update googleapis dependency to support version 16.
