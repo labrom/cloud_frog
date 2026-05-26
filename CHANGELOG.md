@@ -1,3 +1,7 @@
+## 1.3.1
+
+- Update googleapis dependency to support version 16.
+
 ## 1.3.0
 
 - Add DateTimeService (using the timezone package) to work with local times.
