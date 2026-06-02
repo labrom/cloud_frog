@@ -191,23 +191,38 @@ Middleware _validateToken<T>({
       } on TokenVerificationException catch (e) {
         logger?.alert('Invalid token: ${e.message}');
         return Future.value();
+      } on PublicKeysException catch (e) {
+        logger?.alert('Public key fetch failed: ${e.message}');
+        return Future.value();
       }
     },
   );
 }
 
 /// A provider of Google Cloud API public keys.
-final gCloudPublicKeysProvider = provider<Future<KeyStore<Jwk>>>(
-  (context) async => _gCloudPublicKeys ??= gCloudPublicKeys(),
-);
+final gCloudPublicKeysProvider = provider<Future<KeyStore<Jwk>>>((
+  context,
+) async {
+  final cachedKeys = _gCloudPublicKeys;
+  if (cachedKeys != null && !cachedKeys.isExpired) {
+    return cachedKeys;
+  }
+  return _gCloudPublicKeys = await gCloudPublicKeys();
+});
 
 /// A provider of Firebase authentication public keys.
-final firebasePublicKeysProvider = provider<Future<KeyStore<Pem>>>(
-  (context) async => _firebasePublicKeys ??= firebasePublicKeys(),
-);
+final firebasePublicKeysProvider = provider<Future<KeyStore<Pem>>>((
+  context,
+) async {
+  final cachedKeys = _firebasePublicKeys;
+  if (cachedKeys != null && !cachedKeys.isExpired) {
+    return cachedKeys;
+  }
+  return _firebasePublicKeys = await firebasePublicKeys();
+});
 
-Future<Jwks>? _gCloudPublicKeys;
-Future<Pems>? _firebasePublicKeys;
+Jwks? _gCloudPublicKeys;
+Pems? _firebasePublicKeys;
 
 /// A provider of the current Google Cloud project.
 final projectProvider = provider<Future<Project>>(
