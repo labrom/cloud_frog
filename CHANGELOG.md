@@ -1,3 +1,14 @@
+## 1.3.3
+
+- Harden Firebase ID token validation by rejecting malformed tokens, invalid
+  user claims, missing key IDs, non-RS256 algorithms, invalid subjects, and
+  future `auth_time` values.
+- Refresh Google and Firebase public keys according to `Cache-Control`
+  `max-age` values, avoid caching failed fetches, and report public-key fetch
+  failures as authentication failures.
+- Add unit tests for Firebase token validation and public-key fetching.
+- Update the `dart_jsonwebtoken` dependency constraint to `^3.4.1`.
+
 ## 1.3.2
 
 - Move Google Cloud utility implementations to the `gcputil` package and

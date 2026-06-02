@@ -53,7 +53,7 @@ Add Cloud Frog as a dependency to your project's `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  cloud_frog: ^1.2.5
+  cloud_frog: ^1.3.3
 ```
 
 Run `pub get` to fetch `cloud_frog`.
