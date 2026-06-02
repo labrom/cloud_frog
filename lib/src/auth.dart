@@ -157,21 +157,36 @@ Middleware validateFirebaseToken() {
         _validateToken<Pem>(
           audience: projectId.id,
           issuer: issuerFirebasePrefix + projectId.id,
+          requiredAlgorithm: 'RS256',
+          requireKeyId: true,
+          verifyFirebaseClaims: true,
         ),
       )(context);
     };
   };
 }
 
-Middleware _validateToken<T>({String? audience, String? issuer}) {
+Middleware _validateToken<T>({
+  String? audience,
+  String? issuer,
+  String? requiredAlgorithm,
+  bool requireKeyId = false,
+  bool verifyFirebaseClaims = false,
+}) {
   return bearerAuthentication<User>(
     authenticator: (context, token) async {
       final logger = await context.readOptional<Future<RequestLogger>>();
-      final oidcToken = OIDCToken(token: token);
-
-      final keyStore = await context.read<Future<KeyStore<T>>>();
       try {
-        oidcToken.verify(keyStore, audience: audience, issuer: issuer);
+        final oidcToken = OIDCToken(token: token);
+        final keyStore = await context.read<Future<KeyStore<T>>>();
+        oidcToken.verify(
+          keyStore,
+          audience: audience,
+          issuer: issuer,
+          requiredAlgorithm: requiredAlgorithm,
+          requireKeyId: requireKeyId,
+          verifyFirebaseClaims: verifyFirebaseClaims,
+        );
         return Future.value(oidcToken.user);
       } on TokenVerificationException catch (e) {
         logger?.alert('Invalid token: ${e.message}');
