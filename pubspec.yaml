@@ -11,7 +11,7 @@ dependencies:
   dart_frog: ^1.2.6
   dart_frog_auth: ^1.2.2
   dart_frog_request_logger: ^0.0.2
-  dart_jsonwebtoken: ^3.3.1
+  dart_jsonwebtoken: ^3.4.1
   gcputil: ^0.1.0
   http: ^1.6.0
   json_annotation: ^4.9.0
