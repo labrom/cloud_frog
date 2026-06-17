@@ -1,3 +1,8 @@
+## 1.3.4
+
+- Update the `gcputil` dependency constraint to `^0.2.0`.
+- Raise the minimum Dart SDK constraint to `^3.9.0`.
+
 ## 1.3.3
 
 - Harden Firebase ID token validation by rejecting malformed tokens, invalid
