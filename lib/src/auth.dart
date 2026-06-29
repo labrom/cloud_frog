@@ -102,8 +102,8 @@ Middleware get authenticateFirebaseUser {
 /// authorized.
 ///
 /// This middleware expects to find a [User] instance in the request context and
-/// verifies its email address and also that the email address was verified by
-/// the OIDC provider.
+/// verifies its email address, that the email address was verified by the OIDC
+/// provider, and that the account isn't disabled.
 /// This middleware can be used downstream of [authenticateFirebaseUser],
 /// however don't add it downstream of [verifyServiceAccount], because it
 /// already includes it.
@@ -111,7 +111,9 @@ Middleware verifyContextUser(List<String> allowedEmails) {
   return (handler) {
     return (context) {
       final user = context.read<User>();
-      if (!user.emailVerified || !allowedEmails.contains(user.email)) {
+      if (user.accountDisabled ||
+          !user.emailVerified ||
+          !allowedEmails.contains(user.email)) {
         return Response(statusCode: HttpStatus.forbidden);
       }
       return handler(context);

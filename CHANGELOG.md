@@ -1,3 +1,8 @@
+## 1.4.0
+
+- Add account disabled information to `User` and reject disabled users in
+  `verifyContextUser`.
+
 ## 1.3.4
 
 - Update the `gcputil` dependency constraint to `^0.2.0`.

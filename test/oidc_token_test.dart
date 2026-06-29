@@ -31,6 +31,38 @@ void main() {
       expect(user.subject, 'user-123');
       expect(user.email, 'user@example.com');
       expect(user.emailVerified, true);
+      expect(user.accountDisabled, false);
+    });
+
+    test('reads the account disabled claim from a Firebase token', () {
+      final token =
+          OIDCToken(token: _firebaseToken(payload: {'account_disabled': true}))
+            ..verify(
+              _keyStore(),
+              audience: _projectId,
+              issuer: _issuer,
+              requiredAlgorithm: 'RS256',
+              requireKeyId: true,
+              verifyFirebaseClaims: true,
+            );
+
+      final user = token.user;
+      expect(user.accountDisabled, true);
+    });
+
+    test('reads the disabled claim from a Firebase token', () {
+      final token =
+          OIDCToken(token: _firebaseToken(payload: {'disabled': true}))..verify(
+            _keyStore(),
+            audience: _projectId,
+            issuer: _issuer,
+            requiredAlgorithm: 'RS256',
+            requireKeyId: true,
+            verifyFirebaseClaims: true,
+          );
+
+      final user = token.user;
+      expect(user.accountDisabled, true);
     });
 
     test('rejects malformed tokens without leaking an exception type', () {
@@ -117,6 +149,21 @@ void main() {
     test('rejects invalid user claims after successful token verification', () {
       final token =
           OIDCToken(token: _firebaseToken(payload: {'email_verified': 'true'}))
+            ..verify(
+              _keyStore(),
+              audience: _projectId,
+              issuer: _issuer,
+              requiredAlgorithm: 'RS256',
+              requireKeyId: true,
+              verifyFirebaseClaims: true,
+            );
+
+      expect(() => token.user, throwsA(isA<TokenVerificationException>()));
+    });
+
+    test('rejects invalid account disabled claims', () {
+      final token =
+          OIDCToken(token: _firebaseToken(payload: {'disabled': 'true'}))
             ..verify(
               _keyStore(),
               audience: _projectId,

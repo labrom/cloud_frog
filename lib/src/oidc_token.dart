@@ -22,6 +22,7 @@ class OIDCToken {
         subject: payload['sub'] as String,
         email: payload['email'] as String,
         emailVerified: payload['email_verified'] as bool,
+        accountDisabled: _accountDisabled,
       );
     } catch (e) {
       throw TokenVerificationException('Invalid user claims: $e');
@@ -80,6 +81,18 @@ class OIDCToken {
       return Map<String, dynamic>.from(payload);
     }
     throw TokenVerificationException('Invalid token payload');
+  }
+
+  bool get _accountDisabled {
+    final payload = _payload;
+    final disabled = payload['account_disabled'] ?? payload['disabled'];
+    if (disabled == null) {
+      return false;
+    }
+    if (disabled is bool) {
+      return disabled;
+    }
+    throw TokenVerificationException('Invalid account disabled claim');
   }
 
   void _verifyHeader(String? requiredAlgorithm, bool requireKeyId) {

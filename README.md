@@ -100,7 +100,9 @@ const allowedEmails = [...];
 
 Response onRequest(RequestContext context) {
   final user = context.read<User>();
-  if (!user.emailVerified || !allowedEmails.contains(user.email)) {
+  if (user.accountDisabled ||
+      !user.emailVerified ||
+      !allowedEmails.contains(user.email)) {
     return Response(statusCode: HttpStatus.forbidden);
   }
 

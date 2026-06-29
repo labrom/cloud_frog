@@ -4,6 +4,7 @@ class User {
     required this.subject,
     required this.email,
     required this.emailVerified,
+    this.accountDisabled = false,
   });
 
   /// The subject.
@@ -16,4 +17,7 @@ class User {
 
   /// Whether the user email address is verified.
   final bool emailVerified;
+
+  /// Whether the user account is disabled.
+  final bool accountDisabled;
 }
