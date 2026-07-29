@@ -1,3 +1,7 @@
+## 1.4.1
+
+- Update the `gcputil` dependency constraint to `^0.3.0`.
+
 ## 1.4.0
 
 - Add account disabled information to `User` and reject disabled users in
