@@ -1,3 +1,9 @@
+## 1.5.0
+
+- Add configurable Firebase App Check middleware with enforcement or monitoring,
+  app verification results in request context, observation callbacks, custom
+  rejection responses, and configurable OPTIONS bypass.
+
 ## 1.4.1
 
 - Update the `gcputil` dependency constraint to `^0.3.0`.

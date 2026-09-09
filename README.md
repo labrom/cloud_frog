@@ -53,7 +53,7 @@ Add Cloud Frog as a dependency to your project's `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  cloud_frog: ^1.3.3
+  cloud_frog: ^1.5.0
 ```
 
 Run `pub get` to fetch `cloud_frog`.
@@ -226,3 +226,52 @@ void main() {
     final timezoneTime = DateTimeService().now('America/New-York');
 }
 ```
+
+## Firebase App Check
+
+Cloud Frog provides `checkFirebaseAppCheck` and re-exports `AppCheckVerifier`,
+`AppCheckResult`, and `AppCheckStatus` from gcputil. Initialize a verifier in
+your application using `AppCheckVerifier.firebase` and your Firebase Admin
+App Check client (see the [gcputil setup](https://pub.dev/packages/gcputil)).
+Pass the numeric project number and optionally an `allowedAppIds` set.
+With firebase_admin_sdk 0.5.x, the verification-only Firebase app must also
+use the numeric project number as its `projectId`.
+
+```dart
+import 'package:cloud_frog/cloud_frog.dart';
+import 'package:dart_frog/dart_frog.dart';
+
+Handler protect(Handler handler, AppCheckVerifier verifier) => handler.use(
+  checkFirebaseAppCheck(
+    verifier: verifier,
+    enforce: true,
+    onVerification: (context, result) {
+      // Record result.status and result.appId with your application's logger.
+      // Downstream handlers can read context.read<AppCheckResult>().
+    },
+  ),
+);
+```
+
+The middleware reads `X-Firebase-AppCheck`. Enforcement defaults to true:
+missing or invalid tokens receive HTTP 403 (`app_check_failed`), and verifier
+failures receive HTTP 503 (`app_check_unavailable`). SDK invalid-argument and
+expired-token errors, malformed decoded claims, and failed claim checks count
+as invalid; other verifier exceptions count as unavailable. Failures already
+classified as invalid by the SDK cannot be distinguished further by gcputil.
+Responses and results do not include tokens or exception details.
+
+Set `enforce: false` for monitoring: verification and `onVerification` still
+run, and every request continues to the handler. `onRejected` can supply an
+application-specific response. Both hooks
+may be asynchronous. Hook errors propagate to the application's error handler.
+
+OPTIONS bypasses verification by default and has no `AppCheckResult`; set
+`bypassOptions: false` to verify it too. Handle CORS outside this middleware,
+allow `X-Firebase-AppCheck`, and add CORS headers to rejection responses. Mount
+this middleware only on protected routes so health checks remain accessible.
+App Check complements Firebase Authentication; keep user authentication and
+authorization middleware in place. Standard verification does not consume
+tokens or provide replay protection.
+
+See the [App Check example](example/app_check_example.dart) for a configurable integration.
