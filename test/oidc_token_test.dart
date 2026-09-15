@@ -32,6 +32,36 @@ void main() {
       expect(user.email, 'user@example.com');
       expect(user.emailVerified, true);
       expect(user.accountDisabled, false);
+      expect(user.identityProviders, isEmpty);
+      expect(user.signInProvider, isNull);
+    });
+
+    test('reads Firebase identity provider claims', () {
+      final token =
+          OIDCToken(
+            token: _firebaseToken(
+              payload: {
+                'firebase': {
+                  'identities': {
+                    'email': ['user@example.com'],
+                    'google.com': ['google-user-123'],
+                  },
+                  'sign_in_provider': 'google.com',
+                },
+              },
+            ),
+          )..verify(
+            _keyStore(),
+            audience: _projectId,
+            issuer: _issuer,
+            requiredAlgorithm: 'RS256',
+            requireKeyId: true,
+            verifyFirebaseClaims: true,
+          );
+
+      final user = token.user;
+      expect(user.identityProviders, {'email', 'google.com'});
+      expect(user.signInProvider, 'google.com');
     });
 
     test('reads the account disabled claim from a Firebase token', () {
@@ -172,6 +202,26 @@ void main() {
               requireKeyId: true,
               verifyFirebaseClaims: true,
             );
+
+      expect(() => token.user, throwsA(isA<TokenVerificationException>()));
+    });
+
+    test('rejects invalid Firebase identity provider claims', () {
+      final token =
+          OIDCToken(
+            token: _firebaseToken(
+              payload: {
+                'firebase': {'identities': 'google.com'},
+              },
+            ),
+          )..verify(
+            _keyStore(),
+            audience: _projectId,
+            issuer: _issuer,
+            requiredAlgorithm: 'RS256',
+            requireKeyId: true,
+            verifyFirebaseClaims: true,
+          );
 
       expect(() => token.user, throwsA(isA<TokenVerificationException>()));
     });

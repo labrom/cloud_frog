@@ -1,3 +1,8 @@
+## 1.6.0
+
+- Expose Firebase identity providers and the provider used for the current
+  sign-in on the authenticated `User`.
+
 ## 1.5.0
 
 - Add configurable Firebase App Check middleware with enforcement or monitoring,

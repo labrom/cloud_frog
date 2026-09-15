@@ -112,6 +112,10 @@ Response onRequest(RequestContext context) {
 }
 ```
 
+For Firebase users, `User.identityProviders` contains the provider identifiers
+from the token's `firebase.identities` claim, and `User.signInProvider` identifies
+the provider used for the current sign-in.
+
 User authorization can alternatively be handled in a downstream middleware, using either your own implementation or the built-in [verifyContextUser] middleware:
 ```dart
 const allowedEmails = [...];

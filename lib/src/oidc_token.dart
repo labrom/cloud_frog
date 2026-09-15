@@ -23,6 +23,8 @@ class OIDCToken {
         email: payload['email'] as String,
         emailVerified: payload['email_verified'] as bool,
         accountDisabled: _accountDisabled,
+        identityProviders: _identityProviders,
+        signInProvider: _signInProvider,
       );
     } catch (e) {
       throw TokenVerificationException('Invalid user claims: $e');
@@ -93,6 +95,45 @@ class OIDCToken {
       return disabled;
     }
     throw TokenVerificationException('Invalid account disabled claim');
+  }
+
+  Map<String, dynamic>? get _firebaseClaims {
+    final firebase = _payload['firebase'];
+    if (firebase == null) {
+      return null;
+    }
+    if (firebase is Map) {
+      return Map<String, dynamic>.from(firebase);
+    }
+    throw const FormatException('Invalid firebase claim');
+  }
+
+  Set<String> get _identityProviders {
+    final identities = _firebaseClaims?['identities'];
+    if (identities == null) {
+      return const {};
+    }
+    if (identities is! Map) {
+      throw const FormatException('Invalid firebase identities claim');
+    }
+    return {
+      for (final provider in identities.keys)
+        if (provider is String)
+          provider
+        else
+          throw const FormatException('Invalid firebase identity provider'),
+    };
+  }
+
+  String? get _signInProvider {
+    final provider = _firebaseClaims?['sign_in_provider'];
+    if (provider == null) {
+      return null;
+    }
+    if (provider is String) {
+      return provider;
+    }
+    throw const FormatException('Invalid firebase sign-in provider claim');
   }
 
   void _verifyHeader(String? requiredAlgorithm, bool requireKeyId) {
